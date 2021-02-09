@@ -1,6 +1,6 @@
 import logging
 import os
-
+import csv
 import h5py
 import numpy as np
 from scipy.sparse import coo_matrix, csr_matrix
@@ -9,8 +9,48 @@ from implicit.datasets import _download
 
 log = logging.getLogger("implicit")
 
-
 URL_BASE = "https://github.com/benfred/recommender_data/releases/download/v1.0/"
+
+
+def get_iqiyiData(variant):
+    """Gets iqiyi requesting datasets
+
+    Parameters
+    ---------
+    variant : string
+        Which version of the movielens dataset to download. Should be one of '1h', '3h','8h','1d',
+
+    Returns
+    -------
+    movies : ndarray
+        An array of the movie titles.
+    ratings : csr_matrix
+        A sparse matrix where the row is the movieId, the column is the userId and the value is
+        the rating.
+    """
+    filename = "%s.csv" % variant
+
+    baseUrl="C:\\Users\\HP\\work\\project\\SugarJar\\simu\\data\\"
+
+    path = os.path.join(baseUrl, filename)
+    if not os.path.isfile(path):
+        log.error("no dataset at '%s'", path)
+    else:
+        log.info("Using cached dataset at '%s'", path)
+
+    with open(path, "r") as f:
+        f_csv=csv.DictReader(f)
+        count=0
+        for row in f_csv:
+            count+=1
+            print(row['uid'], row['vid'])
+            if count==10:
+                break
+
+    print("good test")
+# trans data to csr_matrix
+#         plays = csr_matrix((m.get("data"), m.get("indices"), m.get("indptr")))
+#         return np.array(f["movie"]), plays
 
 
 def get_movielens(variant="20m"):

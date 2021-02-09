@@ -21,6 +21,7 @@ import tqdm
 from implicit.als import AlternatingLeastSquares
 from implicit.bpr import BayesianPersonalizedRanking
 from implicit.datasets.movielens import get_movielens
+from implicit.datasets.movielens import get_iqiyiData
 from implicit.lmf import LogisticMatrixFactorization
 from implicit.nearest_neighbours import (
     BM25Recommender,
@@ -33,16 +34,11 @@ log = logging.getLogger("implicit")
 
 
 # the main function of the demo
-def calculate_similar_movies(output_filename, model_name="als", min_rating=4.0, variant="20m"):
+def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
     # read in the input data file
     start = time.time()
-    titles, ratings = get_movielens(variant)
+    titles, ratings = get_iqiyiData(variant)
 
-    # remove things < min_rating, and convert to implicit dataset
-    # by considering ratings as a binary preference only
-    ratings.data[ratings.data < min_rating] = 0
-    ratings.eliminate_zeros()
-    ratings.data = np.ones(len(ratings.data))
 
     log.info("read data file in %s", time.time() - start)
 
@@ -97,15 +93,14 @@ def calculate_similar_movies(output_filename, model_name="als", min_rating=4.0, 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generates related movies from the MovieLens 20M "
-                    "dataset (https://grouplens.org/datasets/movielens/20m/)",
+        description="Generates related items from the iqiyi traces",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     parser.add_argument(
         "--output",
         type=str,
-        default="similar-movies.tsv",
+        default="iqiyi_cluster.tsv",
         dest="outputfile",
         help="output file name",
     )
@@ -135,7 +130,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     calculate_similar_movies(
-        args.outputfile, model_name=args.model, min_rating=args.min_rating,
+        args.outputfile, model_name=args.model,
         # variant=args.variant
-        variant="100k"
+        variant="1h"
     )
