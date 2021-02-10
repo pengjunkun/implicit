@@ -52,6 +52,7 @@ def calculate_similar_movies(output_filename, model_name="als", min_rating=4.0, 
 
         # lets weight these models by bm25weight.
         log.debug("weighting matrix by bm25_weight")
+        print(type(ratings))
         ratings = (bm25_weight(ratings, B=0.9) * 5).tocsr()
 
     elif model_name == "bpr":

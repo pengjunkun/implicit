@@ -30,7 +30,7 @@ def get_iqiyiData(variant):
     """
     filename = "%s.csv" % variant
 
-    baseUrl="C:\\Users\\HP\\work\\project\\SugarJar\\simu\\data\\"
+    baseUrl = "C:\\Users\\HP\\work\\project\\SugarJar\\simu\\data\\"
 
     path = os.path.join(baseUrl, filename)
     if not os.path.isfile(path):
@@ -39,15 +39,17 @@ def get_iqiyiData(variant):
         log.info("Using cached dataset at '%s'", path)
 
     with open(path, "r") as f:
-        f_csv=csv.DictReader(f)
-        count=0
+        f_csv = csv.DictReader(f)
+        count = 0
         for row in f_csv:
-            count+=1
+            count += 1
             print(row['uid'], row['vid'])
-            if count==10:
+            if count == 10:
                 break
 
     print("good test")
+
+
 # trans data to csr_matrix
 #         plays = csr_matrix((m.get("data"), m.get("indices"), m.get("indptr")))
 #         return np.array(f["movie"]), plays
@@ -119,7 +121,8 @@ def _read_dataframes_100k(path):
     import pandas
 
     ratings = pandas.read_table(
-        os.path.join(path, "u.data"), names=["userId", "movieId", "rating", "timestamp"]
+        os.path.join(path, "u.data"),
+        names=["userId", "movieId", "rating", "timestamp"]
     )
 
     movies = pandas.read_csv(
@@ -143,7 +146,8 @@ def _read_dataframes(path):
     )
 
     movies = pandas.read_table(
-        os.path.join(path, "movies.dat"), delimiter="::", names=["movieId", "title", "genres"]
+        os.path.join(path, "movies.dat"), delimiter="::",
+        names=["movieId", "title", "genres"]
     )
     return ratings, movies
 
@@ -151,7 +155,8 @@ def _read_dataframes(path):
 def _hfd5_from_dataframe(ratings, movies, outputfilename):
     # transform ratings dataframe into a sparse matrix
     m = coo_matrix(
-        (ratings["rating"].astype(np.float32), (ratings["movieId"], ratings["userId"]))
+        (ratings["rating"].astype(np.float32),
+         (ratings["movieId"], ratings["userId"]))
     ).tocsr()
 
     with h5py.File(outputfilename, "w") as f:

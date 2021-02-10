@@ -15,6 +15,7 @@ import codecs
 import logging
 import time
 
+import iqiyidata
 import numpy as np
 import tqdm
 
@@ -37,7 +38,9 @@ log = logging.getLogger("implicit")
 def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
     # read in the input data file
     start = time.time()
-    titles, ratings = get_iqiyiData(variant)
+    # titles, ratings = get_iqiyiData(variant)
+
+    requests=iqiyidata.getData()
 
 
     log.info("read data file in %s", time.time() - start)
@@ -48,7 +51,7 @@ def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
 
         # lets weight these models by bm25weight.
         log.debug("weighting matrix by bm25_weight")
-        ratings = (bm25_weight(ratings, B=0.9) * 5).tocsr()
+        requests = (bm25_weight(requests, B=0.9) * 5).tocsr()
 
     elif model_name == "bpr":
         model = BayesianPersonalizedRanking()
@@ -71,12 +74,12 @@ def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
     # train the model
     log.debug("training model %s", model_name)
     start = time.time()
-    model.fit(ratings)
+    model.fit(requests)
     log.debug("trained model '%s' in %s", model_name, time.time() - start)
     log.debug("calculating top movies")
 
-    user_count = np.ediff1d(ratings.indptr)
-    to_generate = sorted(np.arange(len(titles)), key=lambda x: -user_count[x])
+    user_count = np.ediff1d(requests.indptr)
+    to_generate = sorted(np.arange(len(requests.shape[0])), key=lambda x: -user_count[x])
 
     log.debug("calculating similar movies")
     with tqdm.tqdm(total=len(to_generate)) as progress:
@@ -84,10 +87,10 @@ def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
             for movieid in to_generate:
                 # if this movie has no ratings, skip over (for instance 'Graffiti Bridge' has
                 # no ratings > 4 meaning we've filtered out all data for it.
-                if ratings.indptr[movieid] != ratings.indptr[movieid + 1]:
-                    title = titles[movieid]
+                if requests.indptr[movieid] != requests.indptr[movieid + 1]:
+                    title = movieid
                     for other, score in model.similar_items(movieid, 11):
-                        o.write("%s\t%s\t%s\n" % (title, titles[other], score))
+                        o.write("%s\t%s\n" % (title, score))
                 progress.update(1)
 
 
