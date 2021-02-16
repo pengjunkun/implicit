@@ -31,6 +31,10 @@ from implicit.nearest_neighbours import (
     bm25_weight,
 )
 
+# config
+LENGTH=10000
+THRESHOLD=0.5
+
 log = logging.getLogger("implicit")
 
 
@@ -40,7 +44,7 @@ def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
     start = time.time()
     # titles, ratings = get_iqiyiData(variant)
 
-    requests=iqiyidata.getData()
+    requests=iqiyidata.getData(variant)
 
 
     log.info("read data file in %s", time.time() - start)
@@ -78,8 +82,10 @@ def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
     log.debug("trained model '%s' in %s", model_name, time.time() - start)
     log.debug("calculating top movies")
 
+    # the number of rating for one video
     user_count = np.ediff1d(requests.indptr)
-    to_generate = sorted(np.arange(len(requests.shape[0])), key=lambda x: -user_count[x])
+    # sort the video from most popular to not popular
+    to_generate = sorted(np.arange(requests.shape[0]), key=lambda x: -user_count[x])
 
     log.debug("calculating similar movies")
     with tqdm.tqdm(total=len(to_generate)) as progress:
@@ -88,9 +94,12 @@ def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
                 # if this movie has no ratings, skip over (for instance 'Graffiti Bridge' has
                 # no ratings > 4 meaning we've filtered out all data for it.
                 if requests.indptr[movieid] != requests.indptr[movieid + 1]:
-                    title = movieid
-                    for other, score in model.similar_items(movieid, 11):
-                        o.write("%s\t%s\n" % (title, score))
+                    me = movieid
+                    a=model.similar_items(movieid, LENGTH)
+                    for other, score in a:
+                        if score<THRESHOLD:
+                            break
+                        o.write("%s\t%s\t%s\n" % (me,other, "{:.3%}".format(score)))
                 progress.update(1)
 
 
@@ -103,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         type=str,
-        default="iqiyi_cluster.tsv",
+        default="D:\\iqiyi_cluster.tsv",
         dest="outputfile",
         help="output file name",
     )
@@ -117,9 +126,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--variant",
         type=str,
-        default="20m",
+        default="24h",
         dest="variant",
-        help="Whether to use the 20m, 10m, 1m or 100k movielens dataset",
+        #could use test
+        help="'1h', '3h','8h','24h'",
     )
     parser.add_argument(
         "--min_rating",
@@ -135,5 +145,5 @@ if __name__ == "__main__":
     calculate_similar_movies(
         args.outputfile, model_name=args.model,
         # variant=args.variant
-        variant="1h"
+        variant=args.variant
     )

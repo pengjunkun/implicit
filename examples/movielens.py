@@ -80,7 +80,9 @@ def calculate_similar_movies(output_filename, model_name="als", min_rating=4.0, 
     log.debug("trained model '%s' in %s", model_name, time.time() - start)
     log.debug("calculating top movies")
 
+    # the number of rating for one video
     user_count = np.ediff1d(ratings.indptr)
+    # sort the video from most popular to not popular
     to_generate = sorted(np.arange(len(titles)), key=lambda x: -user_count[x])
 
     log.debug("calculating similar movies")
