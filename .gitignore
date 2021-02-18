@@ -75,3 +75,4 @@ target/
 .vscode/
 .idea/
 venv/
+*.tsv
