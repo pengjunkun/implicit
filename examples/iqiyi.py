@@ -12,6 +12,7 @@ dataset
 
 import argparse
 import codecs
+import csv
 import logging
 import time
 
@@ -32,20 +33,22 @@ from implicit.nearest_neighbours import (
 )
 
 # config
-LENGTH=10000
-THRESHOLD=0.5
+LENGTH = 10000
+THRESHOLD = 0.5
 
 log = logging.getLogger("implicit")
 
+# file_base_url = "C:\\Users\\HP\\work\\project\\SugarJar\\cf\\implicit\\data\\"
+file_base_url = "D:\\"
+
 
 # the main function of the demo
-def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
+def calculate_similar_movies(output_filename, model_name="als", variant="1h"):
     # read in the input data file
     start = time.time()
     # titles, ratings = get_iqiyiData(variant)
 
-    requests=iqiyidata.getData(variant)
-
+    requests = iqiyidata.getData(variant)
 
     log.info("read data file in %s", time.time() - start)
 
@@ -89,17 +92,18 @@ def calculate_similar_movies(output_filename, model_name="als",variant="1h"):
 
     log.debug("calculating similar movies")
     with tqdm.tqdm(total=len(to_generate)) as progress:
-        with codecs.open(output_filename, "w", "utf8") as o:
+        with open(output_filename, "w") as f:
+            csvWriter = csv.writer(f)
             for movieid in to_generate:
                 # if this movie has no ratings, skip over (for instance 'Graffiti Bridge' has
                 # no ratings > 4 meaning we've filtered out all data for it.
                 if requests.indptr[movieid] != requests.indptr[movieid + 1]:
                     me = movieid
-                    a=model.similar_items(movieid, LENGTH)
+                    a = model.similar_items(movieid, LENGTH)
                     for other, score in a:
-                        if score<THRESHOLD:
+                        if score < THRESHOLD:
                             break
-                        o.write("%s\t%s\t%s\n" % (me,other, "{:.3%}".format(score)))
+                        csvWriter.writerow((me, other, score))
                 progress.update(1)
 
 
@@ -112,7 +116,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         type=str,
-        default="D:\\iqiyi_cluster.tsv",
+        default=file_base_url + "iqiyi_cluster.csv",
         dest="outputfile",
         help="output file name",
     )
@@ -128,7 +132,7 @@ if __name__ == "__main__":
         type=str,
         default="24h",
         dest="variant",
-        #could use test
+        # could use test
         help="'1h', '3h','8h','24h'",
     )
     parser.add_argument(

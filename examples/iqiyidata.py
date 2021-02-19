@@ -6,8 +6,10 @@ import pandas as pd
 
 #%%
 def getData(variant):
-    file_url="C:\\Users\\lenovo\\work\\project\\sugarJar\\simu\\data\\"
+    # file_url="C:\\Users\\lenovo\\work\\project\\sugarJar\\simu\\data\\"
+    file_url="C:\\Users\\HP\\work\\project\\SugarJar\\simu\\data\\"
     file_url=file_url+variant+".csv"
+    #user_id,timestamp,longitude,latitude,video_id
     file=pd.read_csv(file_url,usecols=['video_id','user_id'])[['video_id','user_id']]
     # u14=[]
     # u5459=[]
